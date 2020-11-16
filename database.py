@@ -37,6 +37,18 @@ class Database(object):
             raise Exception(err)
 
 
+    def registerUser(self,name,email,password):
+        try:
+            cursor = self.db.cursor()
+            userId = str(uuid.uuid4())
+            val = (userId,name,email,password)
+            cursor.execute(insertUsersQuery,val)
+            self.db.commit()
+            createdUser = user.User(userId,name,email,password)
+            return createdUser
+        except Exception as e:
+            print(e)
+            return None
 
 
     def getUsers(self):
