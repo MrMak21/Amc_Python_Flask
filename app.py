@@ -70,6 +70,20 @@ def handleRegister():
             return "Error"
 
 
+@app.route('/uploadFile')
+def uploadFile():
+    return render_template('Upload/upload.html',username=session['username'])
+
+@app.route('/selectFiles',methods=['POST'])
+def selectFiles():
+    selectedFiles = request.files.getlist('files')
+
+    for file in selectedFiles:
+        print(file.filename)
+    return render_template('Upload/selectedFiles.html',username=session['username'])
+
+
+
 
 @app.route('/mainpage')
 def mainpage():

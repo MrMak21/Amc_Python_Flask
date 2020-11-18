@@ -1,6 +1,8 @@
 from azure.storage.blob import ContainerClient
 from azure.storage.blob import BlobServiceClient
 import os
+import math
+import Domain.FileInfo as fileInfo
 from pathlib import Path
 
 MY_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=devmakstorage;AccountKey=PgdSHyWamCSNWJWc51tQ/VUONoqGLL0x++ruDHCYT/bLFqwFS8tDZRmZ747DSQ8/4+vnWOh879bkvcXnHjY/Uw==;EndpointSuffix=core.windows.net"
@@ -73,7 +75,8 @@ class AzureHandler(object):
             filenames = []
             files = container_client.list_blobs()
             for file in files:
-                filenames.append(file.name)
+                fileI = fileInfo.FileInfo(file.name,file.creation_time.strftime("%Y/%m/%d %H:%M:%S"),self.convert_size(file.size),file.content_settings['content_type'])
+                filenames.append(fileI)
             return filenames
         except Exception as e:
             print(e)
@@ -99,6 +102,15 @@ class AzureHandler(object):
 
     def getRootPath(self):
         return os.path.dirname(os.path.abspath(__file__))
+
+    def convert_size(self,size_bytes):
+        if size_bytes == 0:
+            return "0B"
+        size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        i = int(math.floor(math.log(size_bytes, 1024)))
+        p = math.pow(1024, i)
+        s = round(size_bytes / p, 2)
+        return "%s %s" % (s, size_name[i])
 
 
 
