@@ -1,8 +1,9 @@
 from collections import namedtuple
-
+import os
 from flask import *
 import database
 import azureFiles
+import Domain.FileInfo as fileInfo
 import LoginScreen.LoginScreen as login
 
 app = Flask(__name__)
@@ -29,6 +30,7 @@ def handleLogin():
         user = db.loginUser(email, password)
         if user != None:
             session['username'] = user.name
+            session['useremail'] = user.email
             # convert object into json so we can pass it to the success function
             return redirect(url_for('successLogin',user=json.dumps(user.__dict__)),code=307)
         else:
@@ -70,16 +72,29 @@ def handleRegister():
             return "Error"
 
 
-@app.route('/uploadFile')
+@app.route('/uploadFile',methods=['GET', 'POST'])
 def uploadFile():
-    return render_template('Upload/upload.html',username=session['username'])
+    if request.method == 'POST':
+        selectedFiles = request.files.getlist('files')
+        if selectedFiles[0].filename != "":
+            uploadFiles = list()
+            for file in selectedFiles:
+                print(file.filename)
+                uploadFileToAzure(file)
+                f = fileInfo.FileInfo(file.filename,None,None,azureHandler.convert_size(file.seek(0,2)),file.content_type)
+                uploadFiles.append(f)
+            return render_template('Upload/success.html',username=session['username'],files=uploadFiles)
+        return render_template('Upload/upload.html',username=session['username'])
+    else:
+        return render_template('Upload/upload.html',username=session['username'])
 
 @app.route('/selectFiles',methods=['POST'])
 def selectFiles():
     selectedFiles = request.files.getlist('files')
-
     for file in selectedFiles:
         print(file.filename)
+        uploadFileToAzure(file)
+
     return render_template('Upload/selectedFiles.html',username=session['username'])
 
 
@@ -87,8 +102,13 @@ def selectFiles():
 
 @app.route('/mainpage')
 def mainpage():
+    userEmail = session['useremail']
     files = azureHandler.getFileNames()
-    return render_template('Mainpage/mainpage.html',username=session['username'],showfiles=files)
+    userFiles = list()
+    for file in files:
+        if userEmail in file.path:
+            userFiles.append(file)
+    return render_template('Mainpage/mainpage.html',username=session['username'],showfiles=userFiles)
 
 if __name__ == '__main__':
     app.run()
@@ -109,3 +129,6 @@ def registerUser(formResult):
             return None
     else:
         return None
+
+def uploadFileToAzure(file):
+    return azureHandler.uploadfile(file,session['useremail'])

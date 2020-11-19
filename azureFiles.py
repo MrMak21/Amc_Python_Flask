@@ -53,17 +53,21 @@ class AzureHandler(object):
             bytes = self.my_container.get_blob_client(blob).download_blob().readall()
             self.save_blob(blob.name, bytes)
 
-    def uploadfile(self, file):
+    def uploadfile(self, file, userEmail):
         try:
             blob_service_client = BlobServiceClient.from_connection_string(MY_CONNECTION_STRING)
-            # Here we split and use only the name of the file so it doesn't create folders and subfolders in azure
-            blob_client = blob_service_client.get_blob_client(MY_BLOB_CONTAINER, os.path.basename(file))
-            print("Uploading to azure as blob: " + file)
 
-            with open(file, "rb") as data:
-                blob_client.upload_blob(data)
+            # create specific filename
+            filename = userEmail + "/" + file.filename
+            blob_client = blob_service_client.get_blob_client(MY_BLOB_CONTAINER, filename)
+
+            # open the blob and uplaod it to the server
+            blob_client.upload_blob(file.read())
+
+            return True
         except Exception as e:
             print(e)
+            return e
 
 
     def getFileNames(self):
@@ -75,7 +79,7 @@ class AzureHandler(object):
             filenames = []
             files = container_client.list_blobs()
             for file in files:
-                fileI = fileInfo.FileInfo(file.name,file.creation_time.strftime("%Y/%m/%d %H:%M:%S"),self.convert_size(file.size),file.content_settings['content_type'])
+                fileI = fileInfo.FileInfo(file.name.split("/",1)[1],file.name,file.creation_time.strftime("%Y/%m/%d %H:%M:%S"),self.convert_size(file.size),file.content_settings['content_type'])
                 filenames.append(fileI)
             return filenames
         except Exception as e:

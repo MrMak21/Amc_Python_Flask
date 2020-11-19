@@ -2,24 +2,7 @@
 <html lang="en">
 <head>
     <script>
-        document.getElementById("loadingSection").style.display = "none";  //hide
-        function showLoading() {
-            var loadingSection = document.getElementById("loadingSection");
-            var selectSection = document.getElementById("selectSection");
-            var inputFile = document.getElementById("inputFile");
 
-            if (inputFile.files.length === 0) {
-                inputFile.reset()
-            } else {
-                if (loadingSection.style.display === "none") {
-                    loadingSection.style.display = "block";
-                    selectSection.style.display = "none"
-                } else {
-                    loadingSection.style.display = "none"
-                    selectSection.style.display = "blovk"
-                }
-            }
-        }
     </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -274,26 +257,10 @@
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
 
-            <div id="selectSection">
+            {% for file in files %}
+                <p>Succesfully upload <strong>{{ file.name }} ({{ file.size }})</strong>  ✔️</p>
+            {% endfor %}
 
-                <form method="post" action="/uploadFile" enctype="multipart/form-data">
-
-                    <div class="form-group files">
-                        <label>Upload Your File </label>
-                        <input type="file" name="files" id="inputFile" class="form-control" multiple="">
-                    </div>
-                    <input type="submit" name="submit" class="form-control" onclick="showLoading()">
-                </form>
-            </div>
-
-            <div id="loadingSection" style="display:none">
-                <p> <strong>Uploading - Do not close the browser</strong></p>
-                <br>
-                <div id='bar' class='indeterminate-progress-bar active'>
-                    <div class='progress-block single-segment'>
-                    </div>
-                </div>
-            </div>
 
         </main>
     </div>
