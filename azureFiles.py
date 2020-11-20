@@ -16,7 +16,8 @@ class AzureHandler(object):
         # Initialize the connection to Azure storage account
         self.blob_service_client = BlobServiceClient.from_connection_string(MY_CONNECTION_STRING)
         self.my_container = self.blob_service_client.get_container_client(MY_BLOB_CONTAINER)
-        self.LOCAL_BLOB_PATH = "r" + os.path.dirname(os.path.abspath(__file__))
+        self.LOCAL_BLOB_PATH = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+
 
 
     def save_blob(self, file_name, file_content):
@@ -31,8 +32,8 @@ class AzureHandler(object):
 
     def download_file(self, file):
         try:
-            print("Downloading file " + file)
-            download_file_path = os.path.join(self.LOCAL_BLOB_PATH, file)
+            download_file_path = os.path.join(self.LOCAL_BLOB_PATH + "\Downloads", file.split("/",1)[1])
+            print("Downloading file " + file + " in: " + download_file_path)
             os.makedirs(os.path.dirname(download_file_path), exist_ok=True)
             bytes = self.my_container.get_blob_client(file).download_blob().readall()
 
@@ -70,14 +71,29 @@ class AzureHandler(object):
             return e
 
 
-    def getFileNames(self):
+    def deleteFile(self, file):
+        try:
+            blob_service_client = BlobServiceClient.from_connection_string(MY_CONNECTION_STRING)
+
+            blob_client = blob_service_client.get_blob_client(MY_BLOB_CONTAINER, file)
+
+            # open the blob and uplaod it to the server
+            blob_client.delete_blob(delete_snapshots="include")
+
+            return True
+        except Exception as e:
+            print(e)
+            return e
+
+
+    def getFileNames(self,prefix):
 
         # Instantiate a new ContainerClient
         blob_service_client = BlobServiceClient.from_connection_string(MY_CONNECTION_STRING)
         container_client = blob_service_client.get_container_client(MY_BLOB_CONTAINER)
         try:
             filenames = []
-            files = container_client.list_blobs()
+            files = container_client.list_blobs(prefix)
             for file in files:
                 fileI = fileInfo.FileInfo(file.name.split("/",1)[1],file.name,file.creation_time.strftime("%Y/%m/%d %H:%M:%S"),self.convert_size(file.size),file.content_settings['content_type'])
                 filenames.append(fileI)
