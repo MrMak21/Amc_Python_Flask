@@ -20,7 +20,11 @@ def indexPage():
 
 @app.route('/login', methods=['POST', 'GET'])
 def loginPage():
-    return render_template('Login/index.html')
+    try:
+        error = request.args['error']
+        return render_template('Login/index.html',error=error)
+    except Exception:
+        return render_template('Login/index.html')
 
 
 @app.route('/handleLogin', methods=['POST'])
@@ -36,7 +40,7 @@ def handleLogin():
             # convert object into json so we can pass it to the success function
             return redirect(url_for('successLogin', user=json.dumps(user.__dict__)), code=307)
         else:
-            return "Error"
+            return redirect(url_for('loginPage',error="True"))
 
 
 @app.route('/autoLogin', methods=['POST'])
