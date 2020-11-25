@@ -14,8 +14,7 @@ azureHandler = azureFiles.AzureHandler()
 
 @app.route('/')
 def indexPage():
-    db.getUsers()
-    return 'Hello World!'
+    return redirect(url_for('loginPage'))
 
 
 @app.route('/login', methods=['POST', 'GET'])

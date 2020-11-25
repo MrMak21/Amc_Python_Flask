@@ -16,7 +16,7 @@ class Database(object):
             self.db = mysql.connector.connect(
                 host="makrisdatabase.mysql.database.azure.com"
                 , user="pmakris@makrisdatabase"
-                , password="Panosaek1997"
+                , password="Amctest1"
                 , database="amcflaskdb")
 
             self.cursor = self.db.cursor()
